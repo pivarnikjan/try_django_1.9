@@ -6,12 +6,15 @@
 {% for obj in object_list %}
 
 <!--<a href='{% url "posts:detail" id=obj.id %}' >{{ obj.title }}</a> <br/>-->
-<a href="{{ obj.get_absolute_url }}">{{ obj.title }}</a> <br/>
-{{ obj.content }} <br/>
-{{ obj.timestamp }} <br/>
-{{ obj.updated }} <br/>
-{{ obj.id }} <br/>
-<br/>
+<div class="col-sm-6">
+
+    <a href="{{ obj.get_absolute_url }}">{{ obj.title }}</a> <br/>
+    {{ obj.content|linebreaks|truncatechars:120 }} <br/>
+    {{ obj.timestamp }} <br/>
+    {{ obj.updated }} <br/>
+    {{ obj.id }} <br/>
+
+</div>
 
 {% endfor %}
 
