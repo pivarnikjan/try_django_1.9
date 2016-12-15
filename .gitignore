@@ -94,3 +94,5 @@ ENV/
 .idea/
 #DB sqlite
 db.sqlite3
+
+static_cdn/
