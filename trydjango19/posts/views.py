@@ -1,10 +1,27 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
+
+from .forms import PostForm
 from .models import Post
 
 
 def post_create(request):
-    return HttpResponse("<h1>Create</>")
+    form = PostForm(request.POST or None)
+    if form.is_valid():
+        instance = form.save(commit=False)
+        instance.save()
+        return HttpResponseRedirect(instance.get_absolute_url())
+
+    # if request.method == "POST":
+    #     print request.POST
+    #     title = request.POST.get("title")
+    #     Post.objects.create(title=title)
+
+    context = {
+        "form": form,
+    }
+    
+    return render(request, "post_form.html", context)
 
 
 def post_detail(request, id):
@@ -35,8 +52,21 @@ def post_list(request):
     return render(request, "index.html", context)
 
 
-def post_update(request):
-    return HttpResponse("<h1>Update</>")
+def post_update(request, id=None):
+    instance = get_object_or_404(Post, id=id)
+
+    form = PostForm(request.POST or None, instance=instance)
+    if form.is_valid():
+        instance = form.save(commit=False)
+        instance.save()
+        return HttpResponseRedirect(instance.get_absolute_url())
+
+    context = {
+        "title": instance.title,
+        "instance": instance,
+        "form": form,
+    }
+    return render(request, "post_form.html", context)
 
 
 def post_delete(request):
