@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import render, get_object_or_404, redirect
-
+from django.utils import timezone
 
 from .forms import PostForm
 from .models import Post
@@ -37,6 +37,9 @@ def post_create(request):
 def post_detail(request, id):
     # instance = Post.objects.get(id=1)  # nebude fungovat
     instance = get_object_or_404(Post, id=id)
+    if instance.publish > timezone.now().date() or instance.draft:
+        if not request.user.is_staff or not request.user.is_superuser:
+            raise Http404
     share_string = quote_plus(instance.content)
     context = {
         "title": instance.title,
@@ -47,11 +50,16 @@ def post_detail(request, id):
 
 
 def post_list(request):
-    queryset_list = Post.objects.all()
-    paginator = Paginator(queryset_list, 5)  # Show 25 contacts per page
-    page_request_var = "abc"
+    # queryset_list = Post.objects.filter(draft=False).filter(publish__lte=timezone.now())
+    today = timezone.now().date()
+    queryset_list = Post.objects.active()
+    if request.user.is_staff or request.user.is_superuser:
+        queryset_list = Post.objects.all()  # Now is overriden with model.Manager
 
+    paginator = Paginator(queryset_list, 5)  # Show 5 contacts per page
+    page_request_var = "page"
     page = request.GET.get(page_request_var)
+
     try:
         queryset = paginator.page(page)
     except PageNotAnInteger:
@@ -65,6 +73,7 @@ def post_list(request):
         "object_list": queryset,
         "title": "List",
         "page_request_var": page_request_var,
+        "today": today,
     }
 
     # if request.user.is_authenticated():
